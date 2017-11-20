@@ -1,8 +1,8 @@
-1.Monster spawn 
-2.Collision =True
-3.Health
-4.Display health
-5.Score
-6.Wall collision
-7.Animation
-8.Menu
+1.Monster spawn = True
+2.Collision = True
+3.Health = true
+4.Display health = true
+5.Score = True
+6.Wall collision =true
+7.Animation = 
+8.Menu = 
