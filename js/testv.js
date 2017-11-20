@@ -1,21 +1,16 @@
+//version1
 var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create: create, update: update });
 	function preload() {
 		game.load.image('background', 'assets/images/rsz_1background.png');
 		game.load.image('wizard','assets/images/wizard1.png');
 		game.load.image('fireball','assets/images/fireball.png');
-		game.load.image('monster1','assets/images/mon1.png');
 	}
 
 	var sprite;
 	var fireballs;
-	var monsters;
 
 	var fireRate = 500;
 	var nextFire = 0;
-	var spawnTime = 0;
-	var score = 0;
-	var killed = 0;
-	var scoreTime =0;
 
 	function create() {
 		game.add.sprite(0, 0, 'background');
@@ -33,28 +28,13 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
 		sprite.scale.x = 0.4;
 		sprite.scale.y = 0.4;
 
-		monsters = game.add.group();
-		monsters.enableBody = true;
-		monsters.physicsBodyType = Phaser.Physics.ARCADE;
-		monsters.createMultiple(20, 'monster1');
-		monsters.setAll('checkWorldBounds', true);
-
-
 		game.physics.enable(sprite, Phaser.Physics.ARCADE);
 
 		// sprite.body.allowRotation = false;
 	}
 	function update() {
-		game.physics.arcade.overlap(fireballs, monsters, collisionHandler, null, this);
 		sprite.rotation = game.physics.arcade.angleToPointer(sprite) + Math.PI/2;
-       	fire();
-       	spawn();
-       	if(game.time.now>scoreTime){
-       		score+=1;
-       		scoreTime = game.time.now+100;
-       	}
-		game.debug.text('Score : '+score,450,32);
-		game.debug.text('killed : '+killed,450,64);
+       		fire();
 	}
 	function fire() {
 	    if (game.time.now > nextFire && fireballs.countDead() > 0)
@@ -63,8 +43,8 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
 
 	        var fireball = fireballs.getFirstDead();
 	        
-	        fireball.scale.x = 0.05;
-			fireball.scale.y = 0.05;
+	        fireball.scale.x = 0.1;
+			fireball.scale.y = 0.1;
 
 	        fireball.reset(sprite.x - 29, sprite.y-30);
 
@@ -72,24 +52,3 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
 	    }
 
 	} 
-	function collisionHandler (fireball, monster) {
-
-	    fireball.kill();
-	    monster.kill();
-	    killed+=1;
-
-	}
-
-	function spawn(){
-		if (game.time.now > spawnTime) {
-			var monster = monsters.getFirstExists(false);
-			if (monster){
-				monster.reset(game.rnd.integerInRange(0,600),0);
-				monster.anchor.set(0.5);
-				monster.scale.x = 0.2;
-				monster.scale.y = 0.2;
-				monster.body.velocity.y = 150;
-				spawnTime = game.time.now +1500;
-			}
-		}
-	}
