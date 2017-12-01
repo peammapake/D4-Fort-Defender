@@ -1,9 +1,9 @@
 var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create: create, update: update });
 	function preload() {
 		game.load.image('background', 'assets/images/background1.png');
-		game.load.image('wizard','assets/images/wizard1.png');
+		game.load.spritesheet('wizard','assets/images/aniwizard.png',1580,1580);
 		game.load.image('fireball','assets/images/fireball.png');
-		game.load.image('monster1','assets/images/mon1.png');
+		game.load.spritesheet('monster1','assets/images/animon1.png',1100,1200);
 		game.load.image('wall','assets/images/wall.png');
 	}
 
@@ -12,7 +12,7 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
 	var monsters;
 	var wall;
 
-	var fireRate = 500;
+	var fireRate = 1000;
 	var nextFire = 0;
 	var spawnTime = 0;
 	var score = 0;
@@ -47,9 +47,11 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
     	fireballs.setAll('outOfBoundsKill', true);
 
     	sprite = game.add.sprite(300, 720, 'wizard');
-		sprite.anchor.set(0.5);
-		sprite.scale.x = 0.4;
-		sprite.scale.y = 0.4;
+		sprite.anchor.set(0.5,0.6);
+		sprite.scale.x = 0.1;
+		sprite.scale.y = 0.1;
+
+		sprite.animations.add('fired',[1,0],2,true);
 
 		monsters = game.add.group();
 		monsters.enableBody = true;
@@ -57,6 +59,7 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
 		monsters.createMultiple(20, 'monster1');
 		monsters.setAll('checkWorldBounds', true);
 
+		
 
 		game.physics.enable(sprite, Phaser.Physics.ARCADE);
 
@@ -65,12 +68,15 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
 	function update() {
 		game.physics.arcade.overlap(fireballs, monsters, collisionHandler, null, this);
 		game.physics.arcade.collide(wall, monsters, collisionHandler2, null, this);
-		sprite.rotation = game.physics.arcade.angleToPointer(sprite);
+		sprite.rotation = game.physics.arcade.angleToPointer(sprite)+(Math.PI/2);
+		sprite.animations.play('fired');
+		
+		
        	fire();
        	spawn();
        	if(game.time.now>scoreTime){
        		score+=1;
-       		scoreTime = game.time.now+100;
+       		scoreTime = game.time.now+300;
        	}
 		game.debug.text('Score : '+score,450,32);
 		game.debug.text('killed : '+killed,450,64);
@@ -88,7 +94,7 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
 
 	        fireball.reset(sprite.x - 30, sprite.y-30);
 
-	        game.physics.arcade.moveToPointer(fireball, 300);
+	        game.physics.arcade.moveToPointer(fireball, 600);
 	    }
 
 	} 
@@ -112,13 +118,16 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
 	}
 
 	function spawn(){
+		var frameNames = Phaser.Animation.generateFrameNames('animon1', 0, 1, '', 1);
+		monsters.callAll('animations.add', 'animations', 'walking', frameNames, 30, true, false);
+		monsters.callAll('play', null, 'walking');
 		if (game.time.now > spawnTime) {
 			var monster = monsters.getFirstExists(false);
 			if (monster){
 				monster.reset(game.rnd.integerInRange(0,600),0);
 				monster.anchor.set(0.5);
-				monster.scale.x = 0.2;
-				monster.scale.y = 0.2;
+				monster.scale.x = 0.15;
+				monster.scale.y = 0.15;
 				monster.body.velocity.y = 150;
 				spawnTime = game.time.now +1500;
 			}
