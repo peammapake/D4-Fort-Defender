@@ -2,7 +2,8 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
 	function preload() {
 		game.load.image('background', 'assets/images/background1.png');
 		game.load.spritesheet('wizard','assets/images/aniwizard.png',1580,1580);
-		game.load.image('fireball','assets/images/fireball.png');
+		game.load.image('fireball','assets/images/pinkball.png');
+		//game.load.image('monster1','assets/images/mon1.png',453,433);
 		game.load.spritesheet('monster1','assets/images/animon1.png',1100,1200);
 		game.load.image('wall','assets/images/wall.png');
 	}
@@ -59,8 +60,6 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
 		monsters.createMultiple(20, 'monster1');
 		monsters.setAll('checkWorldBounds', true);
 
-		
-
 		game.physics.enable(sprite, Phaser.Physics.ARCADE);
 
 		// sprite.body.allowRotation = false;
@@ -70,7 +69,6 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
 		game.physics.arcade.collide(wall, monsters, collisionHandler2, null, this);
 		sprite.rotation = game.physics.arcade.angleToPointer(sprite)+(Math.PI/2);
 		sprite.animations.play('fired');
-		
 		
        	fire();
        	spawn();
@@ -88,10 +86,9 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
 	        nextFire = game.time.now + fireRate;
 
 	        var fireball = fireballs.getFirstDead();
-	        
 	        fireball.scale.x = 0.05;
 			fireball.scale.y = 0.05;
-
+			fireball.rotation = game.physics.arcade.angleToPointer(sprite)+(Math.PI/2);
 	        fireball.reset(sprite.x - 30, sprite.y-30);
 
 	        game.physics.arcade.moveToPointer(fireball, 600);
@@ -118,9 +115,9 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
 	}
 
 	function spawn(){
-		var frameNames = Phaser.Animation.generateFrameNames('animon1', 0, 1, '', 1);
-		monsters.callAll('animations.add', 'animations', 'walking', frameNames, 30, true, false);
-		monsters.callAll('play', null, 'walking');
+		//var frameNames = Phaser.Animation.generateFrameNames('animon1', 0, 1, '', 1);
+		//monsters.callAll('animations.add', 'animations', 'walking', frameNames, 30, true, false);
+		//monsters.callAll('play', null, 'walking');
 		if (game.time.now > spawnTime) {
 			var monster = monsters.getFirstExists(false);
 			if (monster){
@@ -130,6 +127,8 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
 				monster.scale.y = 0.15;
 				monster.body.velocity.y = 150;
 				spawnTime = game.time.now +1500;
+				monsters.callAll('animations.add','animations','moving',[0,1,2],20,true);
+				monsters.callAll('play',null,'moving');
 			}
 		}
 	}
