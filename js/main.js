@@ -4,7 +4,8 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
 		game.load.spritesheet('wizard','assets/images/aniwizard.png',1580,1580);
 		game.load.image('fireball','assets/images/pinkball.png');
 		//game.load.image('monster1','assets/images/mon1.png',453,433);
-		game.load.spritesheet('monster1','assets/images/animon1.png',1100,1200);
+		//game.load.spritesheet('monster1','assets/images/animon1.png',1100,1200);
+		game.load.spritesheet('monster1','assets/images/animon1-2.png',970,848);
 		game.load.image('wall','assets/images/wall.png');
 	}
 
@@ -127,7 +128,7 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
 				monster.scale.y = 0.15;
 				monster.body.velocity.y = 150;
 				spawnTime = game.time.now +1500;
-				monsters.callAll('animations.add','animations','moving',[0,1,2],20,true);
+				monsters.callAll('animations.add','animations','moving',[0,1,2],10,true);
 				monsters.callAll('play',null,'moving');
 			}
 		}
