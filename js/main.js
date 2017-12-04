@@ -7,20 +7,22 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
 		//game.load.spritesheet('monster1','assets/images/animon1.png',1100,1200);
 		game.load.spritesheet('monster1','assets/images/animon1-2.png',970,848);
 		game.load.image('wall','assets/images/wall.png');
+		game.load.image('heart','assets/images/heart.png',1969,1829);
 	}
 
 	var sprite;
 	var fireballs;
 	var monsters;
 	var wall;
-
+	var stateText;
 	var fireRate = 1000;
 	var nextFire = 0;
 	var spawnTime = 0;
 	var score = 0;
 	var killed = 0;
 	var scoreTime =0;
-	var health = 5;
+	var health;
+	var hearts;
 	var temp;
 
 	function create() {
@@ -63,7 +65,19 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
 
 		game.physics.enable(sprite, Phaser.Physics.ARCADE);
 
-		// sprite.body.allowRotation = false;
+		hearts = game.add.group();
+    	game.add.text(game.world.width -550, 10, 'Lives : ', { font: '34px Arial', fill: '#fff' });
+    	stateText = game.add.text(game.world.centerX,game.world.centerY,' ', { font: '84px Arial', fill: '#fff'});
+    	stateText.anchor.setTo(0.5, 0.5);
+    	stateText.visible = false;
+		for (var i = 0; i < 5; i++) {
+	        var health = hearts.create(290 - (30 * i), 35, 'heart');
+	        health.anchor.setTo(0.5, 0.5);
+	        health.scale.x = 0.01;
+	        health.scale.y = 0.01;
+	        //health.angle = 90;
+	        health.alpha = 0.4;
+    	}
 	}
 	function update() {
 		game.physics.arcade.overlap(fireballs, monsters, collisionHandler, null, this);
@@ -79,7 +93,7 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
        	}
 		game.debug.text('Score : '+score,450,32);
 		game.debug.text('killed : '+killed,450,64);
-		game.debug.text('health : '+health,450,92);
+		//game.debug.text('health : '+health,450,92);
 	}
 	function fire() {
 	    if (game.time.now > nextFire && fireballs.countDead() > 0)
@@ -87,8 +101,8 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
 	        nextFire = game.time.now + fireRate;
 
 	        var fireball = fireballs.getFirstDead();
-	        fireball.scale.x = 0.05;
-			fireball.scale.y = 0.05;
+	        fireball.scale.x = 0.04;
+			fireball.scale.y = 0.04;
 			fireball.rotation = game.physics.arcade.angleToPointer(sprite)+(Math.PI/2);
 	        fireball.reset(sprite.x - 30, sprite.y-30);
 
@@ -111,7 +125,25 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
 		wall.anchor.set(0.5);
 		wall.scale.x = 0.25;
 		wall.scale.y = 0.22;
-	    health-=1;
+
+		heart = hearts.getFirstAlive();
+		if(heart){
+			heart.kill();
+		}
+		if (hearts.countLiving() == 0){
+			//sprite.kill();
+			//monsters.callAll('kill');
+	     	sprite.destroy();
+	     	monsters.destroy();
+	     	fireballs.destroy();
+	     	
+	        stateText.text=" GAME OVER \n Click to restart";
+	        stateText.visible = true;
+
+	        //the "click to restart" handler
+	        game.input.onTap.addOnce(restart,this);
+	    }
+	    //health-=1;
 
 	}
 
@@ -134,7 +166,23 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
 		}
 	}
 	function processHandler (wall,monster) {
-
 	    return true;
-
 	}
+	function restart () {
+
+    //  A new level starts
+    
+    //resets the life count
+   	hearts.callAll('revive');
+    //  And brings the aliens back from the dead :)
+    monsters.removeAll();
+    spawn();
+
+    //revives the player
+    sprite.revive();
+    //hides the text
+    stateText.visible = false;
+    score = 0;
+	killed = 0;
+	scoreTime =0;
+}
