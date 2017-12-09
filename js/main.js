@@ -17,7 +17,8 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
 	var stateText;
 	var fireRate = 1000;
 	var nextFire = 0;
-	var spawnTime = 0;
+	var nextSpawn =0;
+	var spawnTime = 1500;
 	var score = 0;
 	var killed = 0;
 	var scoreTime =0;
@@ -64,6 +65,7 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
 		monsters.physicsBodyType = Phaser.Physics.ARCADE;
 		monsters.createMultiple(20, 'monster1');
 		monsters.setAll('checkWorldBounds', true);
+		monsters.setAll('outOfBoundsKill', true);
 
 		game.physics.enable(sprite, Phaser.Physics.ARCADE);
 
@@ -96,6 +98,7 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
        	}
 		game.debug.text('Score : '+score,450,32);
 		game.debug.text('killed : '+killed,450,64);
+		//game.debug.text('monsters : '+monsters.countDead(),200,96);
 		//game.debug.text('health : '+health,450,92);
 	}
 	function fire() {
@@ -156,15 +159,15 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
 		//var frameNames = Phaser.Animation.generateFrameNames('animon1', 0, 1, '', 1);
 		//monsters.callAll('animations.add', 'animations', 'walking', frameNames, 30, true, false);
 		//monsters.callAll('play', null, 'walking');
-		if (game.time.now > spawnTime) {
+		if (game.time.now > nextSpawn && monsters.countDead() > 0) {
 			var monster = monsters.getFirstDead();
 			if (monster){
 				monster.reset(game.rnd.integerInRange(0,600),0);
 				monster.anchor.set(0.5);
-				monster.scale.x = 0.15;
-				monster.scale.y = 0.15;
+				monster.scale.x = 0.1;
+				monster.scale.y = 0.1;
 				monster.body.velocity.y = 150;
-				spawnTime = game.time.now +1500;
+				nextSpawn = game.time.now +spawnTime;
 				monsters.callAll('animations.add','animations','moving',[0,1,2],10,true);
 				monsters.callAll('play',null,'moving');
 			}
@@ -179,11 +182,6 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
     
     //resets the life count
    	hearts.callAll('revive');
-    //  And brings the aliens back from the dead :)
-    monsters.removeAll();
-    spawnTime=0;
-    monsters.callAll('revive');
-    //spawn();
 
     //revives the player
     sprite.revive();
