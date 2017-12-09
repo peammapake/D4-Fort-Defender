@@ -1,6 +1,9 @@
-var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create: create, update: update });
+//var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create: create, update: update });
+game = new Phaser.Game(screen.width , screen.height , Phaser.AUTO, 'gameArea',{ preload: preload, create: create, update: update });
+	//var scaleRatio = window.devicePixelRatio / 3;
+	//myAsset.scale.setTo(scaleRatio, scaleRatio);
 	function preload() {
-		game.load.image('background', 'assets/images/background1.png');
+		game.load.image('background', 'assets/images/BG.png');
 		game.load.spritesheet('wizard','assets/images/aniwizard.png',1580,1580);
 		game.load.image('fireball','assets/images/pinkball.png');
 		//game.load.image('monster1','assets/images/mon1.png',453,433);
@@ -11,7 +14,8 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
 		game.load.spritesheet('firewall','assets/images/firewall.png',2480,1139);
 		game.load.image('heart','assets/images/heart.png',1969,1829);
 	}
-
+	var BG ;
+	var wide = screen.width
 	var sprite;
 	var fireballs;
 	var monsters;
@@ -32,7 +36,10 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
 	var spawnTime2 = 5000;
 
 	function create() {
-		game.add.sprite(0, 0, 'background');
+		BG = game.add.sprite(game.world.centerX, 0, 'background');
+		BG.anchor.set(0.5,0);
+		BG.scale.x=screen.width/2480;
+		BG.scale.y=screen.height/3507;
 
 		walls = game.add.group();
 		walls.enableBody = true;
@@ -42,10 +49,10 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
 		walls.setAll('checkWorldBounds',true);
 
 		wall = walls.getFirstExists(false);
-		wall.reset(300 , 745);
-		wall.anchor.set(0.5);
-		wall.scale.x = 0.25;
-		wall.scale.y = 0.22;
+		wall.reset(game.world.centerX,screen.height-200);
+		wall.anchor.set(0.5,0.2);
+		wall.scale.x = screen.width/2480;
+		wall.scale.y = screen.width/2480;
 		
 		fireballs = game.add.group();
     	fireballs.enableBody = true;
@@ -55,14 +62,14 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
     	fireballs.setAll('checkWorldBounds', true);
     	fireballs.setAll('outOfBoundsKill', true);
 
-    	firewall = game.add.sprite(300,708,'firewall');
-    	firewall.anchor.set(0.5);
-    	firewall.scale.x = 0.25;
-    	firewall.scale.y = 0.25;
+    	firewall = game.add.sprite(game.world.centerX,screen.height-200,'firewall');
+    	firewall.anchor.set(0.5,0.4555);
+    	firewall.scale.x = screen.width/2480;
+    	firewall.scale.y = screen.width/2480;
 
     	firewall.animations.add('burn',[0,1],10,true);
 
-    	sprite = game.add.sprite(300, 720, 'wizard');
+    	sprite = game.add.sprite(game.world.centerX, (game.world.height-200), 'wizard');
 		sprite.anchor.set(0.5,0.6);
 		sprite.scale.x = 0.1;
 		sprite.scale.y = 0.1;
@@ -85,13 +92,14 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
 
 		game.physics.enable(sprite, Phaser.Physics.ARCADE);
 
-		hearts = game.add.group();
-    	game.add.text(game.world.width -550, 10, 'Lives : ', { font: '34px Arial', fill: '#fff' });
-    	stateText = game.add.text(game.world.centerX,game.world.centerY,' ', { font: '84px Arial', fill: '#fff'});
+    	game.add.text(game.world.width - (game.world.width*9.5/10), game.world.height -(game.world.height*9.5/10), 'Lives : ', { font: '34px Arial', fill: '#fff' });
+    	stateText = game.add.text(game.world.centerX,game.world.centerY-(game.world.centerY*1/5),' ', { font: '21px Arial', fill: '#fff'});
     	stateText.anchor.setTo(0.5, 0.5);
     	stateText.visible = false;
+
+    	hearts = game.add.group();
 		for (var i = 0; i < 5; i++) {
-	        var health = hearts.create(290 - (30 * i), 35, 'heart');
+	        var health = hearts.create((game.world.width - (game.world.width*9.5/10)+150)- (30 * i), game.world.height -(game.world.height*9.5/10) , 'heart');
 	        health.anchor.setTo(0.5, 0.5);
 	        health.scale.x = 0.01;
 	        health.scale.y = 0.01;
@@ -111,14 +119,14 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
 	       	spawn();
 	       	spawn2();
 	       	firewall.animations.play('burn');
-	        firewall.visible = false;
+	        firewall.kill();
 	       	if(game.time.now>scoreTime){
 	       		score+=1;
 	       		scoreTime = game.time.now+300;
 	       	}
 	    }
 	    if (run == 0){
-	    	firewall.visible = true;
+	    	firewall.revive();
 	       	        }
 		game.debug.text('Score : '+score,450,32);
 		game.debug.text('killed : '+killed,450,64);
@@ -151,10 +159,10 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
 	function collisionHandler2 (wall, monster) {
 
 	    monster.kill();
-	    wall.reset(300 , 745);
-		wall.anchor.set(0.5);
-		wall.scale.x = 0.25;
-		wall.scale.y = 0.22;
+	    wall.reset(game.world.centerX,screen.height-200);
+		wall.anchor.set(0.5,0.2);
+		wall.scale.x = screen.width/2480;
+		wall.scale.y = screen.width/2480;
 
 		heart = hearts.getFirstAlive();
 		if(heart){
@@ -192,10 +200,10 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
 	function collisionHandler4 (wall, monster2) {
 
 	    monster2.kill();
-	    wall.reset(300 , 745);
-		wall.anchor.set(0.5);
-		wall.scale.x = 0.25;
-		wall.scale.y = 0.22;
+	    wall.reset(game.world.centerX,screen.height-200);
+		wall.anchor.set(0.5,0.2);
+		wall.scale.x = screen.width/2480;
+		wall.scale.y = screen.width/2480;
 
 		heart = hearts.getFirstAlive();
 		if(heart){
@@ -228,7 +236,7 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
 		if (game.time.now > nextSpawn && monsters.countDead() > 0) {
 			var monster = monsters.getFirstDead();
 			if (monster){
-				monster.reset(game.rnd.integerInRange(0,600),0);
+				monster.reset(game.rnd.integerInRange(1,screen.width),0);
 				monster.anchor.set(0.5);
 				monster.scale.x = 0.1;
 				monster.scale.y = 0.1;
@@ -246,7 +254,7 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
 		if (game.time.now > nextSpawn2 && monsters2.countDead() > 0) {
 			var monster2 = monsters2.getFirstDead();
 			if (monster2){
-				monster2.reset(game.rnd.integerInRange(0,600),0);
+				monster2.reset(game.rnd.integerInRange(1,screen.width),0);
 				monster2.anchor.set(0.5);
 				monster2.scale.x = 0.1;
 				monster2.scale.y = 0.1;
