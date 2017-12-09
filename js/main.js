@@ -24,6 +24,8 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
 	var health;
 	var hearts;
 	var temp;
+	var run =1;
+	var time = game.time.now % 1000;
 
 	function create() {
 		game.add.sprite(0, 0, 'background');
@@ -83,10 +85,11 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
 		game.physics.arcade.overlap(fireballs, monsters, collisionHandler, null, this);
 		game.physics.arcade.collide(wall, monsters, collisionHandler2, null, this);
 		sprite.rotation = game.physics.arcade.angleToPointer(sprite)+(Math.PI/2);
-		sprite.animations.play('fired');
-		
-       	fire();
-       	spawn();
+		if (run == 1 ) {
+			sprite.animations.play('fired');
+	       	fire();
+	       	spawn();
+	       	}
        	if(game.time.now>scoreTime){
        		score+=1;
        		scoreTime = game.time.now+300;
@@ -133,9 +136,11 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
 		if (hearts.countLiving() == 0){
 			//sprite.kill();
 			//monsters.callAll('kill');
-	     	sprite.destroy();
-	     	monsters.destroy();
-	     	fireballs.destroy();
+	     	sprite.kill();
+	     	monsters.callAll('kill');
+	     	fireballs.callAll('kill');
+	     	sprite.animations.stop(null,true);
+	     	run = 0;
 	     	
 	        stateText.text=" GAME OVER \n Click to restart";
 	        stateText.visible = true;
@@ -152,7 +157,7 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
 		//monsters.callAll('animations.add', 'animations', 'walking', frameNames, 30, true, false);
 		//monsters.callAll('play', null, 'walking');
 		if (game.time.now > spawnTime) {
-			var monster = monsters.getFirstExists(false);
+			var monster = monsters.getFirstDead();
 			if (monster){
 				monster.reset(game.rnd.integerInRange(0,600),0);
 				monster.anchor.set(0.5);
@@ -176,10 +181,16 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
    	hearts.callAll('revive');
     //  And brings the aliens back from the dead :)
     monsters.removeAll();
-    spawn();
+    spawnTime=0;
+    monsters.callAll('revive');
+    //spawn();
 
     //revives the player
     sprite.revive();
+    run = 1;
+    //fire();
+    
+
     //hides the text
     stateText.visible = false;
     score = 0;
