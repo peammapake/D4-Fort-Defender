@@ -6,6 +6,7 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
 		//game.load.image('monster1','assets/images/mon1.png',453,433);
 		//game.load.spritesheet('monster1','assets/images/animon1.png',1100,1200);
 		game.load.spritesheet('monster1','assets/images/animon1-2.png',970,848);
+		game.load.spritesheet('monster2','assets/images/bluenimon.png',970,848);
 		game.load.image('wall','assets/images/wall.png');
 		game.load.spritesheet('firewall','assets/images/firewall.png',2480,1139);
 		game.load.image('heart','assets/images/heart.png',1969,1829);
@@ -19,6 +20,7 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
 	var fireRate = 1000;
 	var nextFire = 0;
 	var nextSpawn =0;
+	var nextSpawn2 =0;
 	var spawnTime = 1500;
 	var score = 0;
 	var killed = 0;
@@ -27,6 +29,7 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
 	var hearts;
 	var temp;
 	var run =1;
+	var spawnTime2 = 5000;
 
 	function create() {
 		game.add.sprite(0, 0, 'background');
@@ -73,6 +76,13 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
 		monsters.setAll('checkWorldBounds', true);
 		monsters.setAll('outOfBoundsKill', true);
 
+		monsters2 = game.add.group();
+		monsters2.enableBody = true;
+		monsters2.physicsBodyType = Phaser.Physics.ARCADE;
+		monsters2.createMultiple(20,'monster2');
+		monsters2.setAll('checkWorldBounds',true);
+		monsters2.setAll('outOfBoundsKill',true);
+
 		game.physics.enable(sprite, Phaser.Physics.ARCADE);
 
 		hearts = game.add.group();
@@ -92,11 +102,14 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
 	function update() {
 		game.physics.arcade.overlap(fireballs, monsters, collisionHandler, null, this);
 		game.physics.arcade.collide(wall, monsters, collisionHandler2, null, this);
+		game.physics.arcade.overlap(fireballs,monsters2, collisionHandler3,null, this);
+		game.physics.arcade.collide(wall, monsters2, collisionHandler4, null, this);
 		sprite.rotation = game.physics.arcade.angleToPointer(sprite)+(Math.PI/2);
 		if (run == 1 ) {
 			sprite.animations.play('fired');
 	       	fire();
 	       	spawn();
+	       	spawn2();
 	       	firewall.animations.play('burn');
 	        firewall.visible = false;
 	       	if(game.time.now>scoreTime){
@@ -152,6 +165,7 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
 			//monsters.callAll('kill');
 	     	sprite.kill();
 	     	monsters.callAll('kill');
+	     	monsters2.callAll('kill');
 	     	fireballs.callAll('kill');
 	     	sprite.animations.stop(null,true);
 	     	run = 0;
@@ -166,7 +180,47 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
 	    //health-=1;
 
 	}
+	function collisionHandler3 (fireball, monster2) {
 
+	    fireball.kill();
+	    monster2.kill();
+	    killed+=1;
+
+	}
+
+
+	function collisionHandler4 (wall, monster2) {
+
+	    monster2.kill();
+	    wall.reset(300 , 745);
+		wall.anchor.set(0.5);
+		wall.scale.x = 0.25;
+		wall.scale.y = 0.22;
+
+		heart = hearts.getFirstAlive();
+		if(heart){
+			heart.kill();
+		}
+		if (hearts.countLiving() == 0){
+			//sprite.kill();
+			//monsters.callAll('kill');
+	     	sprite.kill();
+	     	monsters.callAll('kill');
+	     	monsters2.callAll('kill');
+	     	fireballs.callAll('kill');
+	     	sprite.animations.stop(null,true);
+	     	run = 0;
+	   
+	        stateText.text=" GAME OVER \n SCORE:"+score+" \nClick to restart";
+	        stateText.visible = true;
+
+
+	        //the "click to restart" handler
+	        game.input.onTap.addOnce(restart,this);
+	    }
+	    //health-=1;
+
+	}
 	function spawn(){
 		//var frameNames = Phaser.Animation.generateFrameNames('animon1', 0, 1, '', 1);
 		//monsters.callAll('animations.add', 'animations', 'walking', frameNames, 30, true, false);
@@ -182,6 +236,24 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
 				nextSpawn = game.time.now +spawnTime;
 				monsters.callAll('animations.add','animations','moving',[0,1,2,1,0],10,true);
 				monsters.callAll('play',null,'moving');
+			}
+		}
+	}
+	function spawn2(){
+		//var frameNames = Phaser.Animation.generateFrameNames('animon1', 0, 1, '', 1);
+		//monsters.callAll('animations.add', 'animations', 'walking', frameNames, 30, true, false);
+		//monsters.callAll('play', null, 'walking');
+		if (game.time.now > nextSpawn2 && monsters2.countDead() > 0) {
+			var monster2 = monsters2.getFirstDead();
+			if (monster2){
+				monster2.reset(game.rnd.integerInRange(0,600),0);
+				monster2.anchor.set(0.5);
+				monster2.scale.x = 0.1;
+				monster2.scale.y = 0.1;
+				monster2.body.velocity.y = 100;
+				nextSpawn2 = game.time.now +spawnTime2;
+				monsters2.callAll('animations.add','animations','moving',[0,1,2,1,0],10,true);
+				monsters2.callAll('play',null,'moving');
 			}
 		}
 	}
