@@ -7,6 +7,7 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
 		//game.load.spritesheet('monster1','assets/images/animon1.png',1100,1200);
 		game.load.spritesheet('monster1','assets/images/animon1-2.png',970,848);
 		game.load.image('wall','assets/images/wall.png');
+		game.load.spritesheet('firewall','assets/images/firewall.png',2480,1139);
 		game.load.image('heart','assets/images/heart.png',1969,1829);
 	}
 
@@ -26,7 +27,6 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
 	var hearts;
 	var temp;
 	var run =1;
-	var time = game.time.now % 1000;
 
 	function create() {
 		game.add.sprite(0, 0, 'background');
@@ -44,7 +44,6 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
 		wall.scale.x = 0.25;
 		wall.scale.y = 0.22;
 		
-
 		fireballs = game.add.group();
     	fireballs.enableBody = true;
     	fireballs.physicsBodyType = Phaser.Physics.ARCADE;
@@ -52,6 +51,13 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
     	fireballs.createMultiple(50, 'fireball');
     	fireballs.setAll('checkWorldBounds', true);
     	fireballs.setAll('outOfBoundsKill', true);
+
+    	firewall = game.add.sprite(300,708,'firewall');
+    	firewall.anchor.set(0.5);
+    	firewall.scale.x = 0.25;
+    	firewall.scale.y = 0.25;
+
+    	firewall.animations.add('burn',[0,1],10,true);
 
     	sprite = game.add.sprite(300, 720, 'wizard');
 		sprite.anchor.set(0.5,0.6);
@@ -91,11 +97,16 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
 			sprite.animations.play('fired');
 	       	fire();
 	       	spawn();
+	       	firewall.animations.play('burn');
+	        firewall.visible = false;
+	       	if(game.time.now>scoreTime){
+	       		score+=1;
+	       		scoreTime = game.time.now+300;
 	       	}
-       	if(game.time.now>scoreTime){
-       		score+=1;
-       		scoreTime = game.time.now+300;
-       	}
+	    }
+	    if (run == 0){
+	    	firewall.visible = true;
+	       	        }
 		game.debug.text('Score : '+score,450,32);
 		game.debug.text('killed : '+killed,450,64);
 		//game.debug.text('monsters : '+monsters.countDead(),200,96);
@@ -144,9 +155,10 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
 	     	fireballs.callAll('kill');
 	     	sprite.animations.stop(null,true);
 	     	run = 0;
-	     	
-	        stateText.text=" GAME OVER \n Click to restart";
+	   
+	        stateText.text=" GAME OVER \n SCORE:"+score+" \nClick to restart";
 	        stateText.visible = true;
+
 
 	        //the "click to restart" handler
 	        game.input.onTap.addOnce(restart,this);
@@ -168,7 +180,7 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
 				monster.scale.y = 0.1;
 				monster.body.velocity.y = 150;
 				nextSpawn = game.time.now +spawnTime;
-				monsters.callAll('animations.add','animations','moving',[0,1,2],10,true);
+				monsters.callAll('animations.add','animations','moving',[0,1,2,1,0],10,true);
 				monsters.callAll('play',null,'moving');
 			}
 		}
